@@ -19,7 +19,7 @@ async function render(){
    const pages={overview,datasets:dataPage,workbench,results:()=>results(id),reports:reportPage};
    const content=await (pages[page]||overview)();app.innerHTML=shell(page,content);
    document.querySelector('#logout').onclick=()=>{session.clear();location.hash='#/login';render();};
-   if(page==='datasets')bindData(render);if(page==='workbench')bindWorkbench();if(page==='results')bindResults(render);if(page==='reports')bindReports(render);
+   if(page==='datasets')bindData(render);if(page==='workbench')bindWorkbench(render);if(page==='results')bindResults(render);if(page==='reports')bindReports(render);
  }catch(e){app.innerHTML='<div class="fatal"><h1>暂时无法打开工作室</h1><p>'+esc(e.message)+'</p><button onclick="location.reload()">重新连接</button></div>';}
 }
 addEventListener('hashchange',render);render();

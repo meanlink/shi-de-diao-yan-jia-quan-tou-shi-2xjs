@@ -3,8 +3,9 @@
 加权透视汇总的真实业务分析小型项目。完整模拟客户、痛点、上下游、算法公式与一天工作剧本见 [BUSINESS.md](BUSINESS.md)。
 
 ## 模块与业务流程
-数据接入（JSON/CSV、字段验证、批次指纹）→ 参数化分析（异步 Python worker）→ 结果复核（指标、图形、明细、解释、批准）→ 定时分发（本地收件箱、CSV/JSON、SHA256）；另有业务总览和审计轨迹。
-三个贯穿全栈的实体：Dataset 数据批次、Job 分析任务、Report 分发计划；辅助 User、Audit、Delivery。
+数据接入（JSON/CSV、字段验证、批次指纹）→ 日表收卷（分批、待补齐/已封卷、单边窗排除留痕）→ 同日同区域配对 → 参数化分析（异步 Python worker，幂等）→ 结果复核（指标、图形、配对明细、解释、批准）→ 定时分发（本地收件箱、CSV/JSON、SHA256）；另有业务总览和审计轨迹。
+贯穿全栈的实体：Dataset 数据批次、Volume 日表卷、Job 分析任务、Report 分发计划；辅助 User、Audit、Delivery。
+配对核心：只有 `(观察日, 区域层)` 上A/B两队都有记录的窗参与加权；单边窗须注明理由排除；未配齐也未排除的窗会挡住封卷。补报先落定入本卷，封卷先落定则迟报归下一卷。
 
 ## 快速启动
 ```bash
@@ -29,7 +30,7 @@ Python 3.12 / FastAPI / SQLAlchemy / NumPy / SciPy / scikit-learn；PostgreSQL 1
 ## 目录与工程约定
 backend/src/{models,schemas,services,routes,controllers,middlewares,constants,config,utils}；backend/scripts/seed_demo.py；backend/migrations/initial.py。
 frontend/src/{api,stores,types,components/common,hooks,pages,router,utils,constants}。
-Role 枚举：admin/analyst/viewer；JobStatus：queued/running/completed/failed。后端 backend/src/constants/enums.py，前端 frontend/src/constants/enums.js；路由权限在 middlewares/auth.py；页面按相同角色控制操作入口。
+Role 枚举：admin/analyst/viewer；JobStatus：queued/running/completed/failed；VolumeStatus：collecting/sealed；页面卷阶段：待补齐/已封卷/计算中/计算完成/计算失败。后端 backend/src/constants/enums.py，前端 frontend/src/constants/enums.js；路由权限在 middlewares/auth.py；页面按相同角色控制操作入口。
 
 ## 环境变量与 Docker
 COMPOSE_PROJECT_NAME=survey-pivot；FRONTEND_PORT=18218；BACKEND_PORT=19218；DB_PORT=17718；DB_PASSWORD、JWT_SECRET 见 .env.example；SEED_DEMO 默认 true。共享命名产物卷供后端下载与 worker 写入，数据库/Redis 各持久卷。

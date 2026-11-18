@@ -8,3 +8,12 @@ class JobStatus(str, Enum):
     running = 'running'
     completed = 'completed'
     failed = 'failed'
+class VolumeStatus(str, Enum):
+    collecting = 'collecting'
+    sealed = 'sealed'
+class VolumeStage(str, Enum):
+    collecting = 'collecting'
+    sealed = 'sealed'
+    computing = 'computing'
+    completed = 'completed'
+    failed = 'failed'

@@ -7,7 +7,7 @@ from redis import Redis
 from src.config.database import Session
 from src.config.settings import REDIS_URL
 from src.middlewares.requests import RequestControl
-from src.routes import auth, datasets, jobs, reports
+from src.routes import auth, datasets, jobs, reports, volumes
 from src.controllers import catalog
 from migrations.initial import migrate
 @asynccontextmanager
@@ -21,6 +21,9 @@ async def lifespan(app):
     yield
 app=FastAPI(title='业务分析工作室',lifespan=lifespan)
 app.add_middleware(RequestControl)
+@app.exception_handler(ValueError)
+async def invalid_business_input(request:Request,exc:ValueError):
+    return JSONResponse({'detail':str(exc)},status_code=422)
 @app.exception_handler(Exception)
 async def unhandled(request:Request,exc:Exception):
     logging.exception('Request failed')
@@ -30,4 +33,4 @@ def health():
     with Session() as db:db.execute(text('SELECT 1'))
     r=Redis.from_url(REDIS_URL,socket_timeout=2);r.ping();r.close()
     return {'status':'healthy'}
-for router in [auth.router,datasets.router,jobs.router,reports.router,catalog.router]:app.include_router(router)
+for router in [auth.router,datasets.router,jobs.router,reports.router,volumes.router,catalog.router]:app.include_router(router)
